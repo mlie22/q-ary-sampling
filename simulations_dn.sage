@@ -60,18 +60,19 @@ coset of Dn represented by a codeword of weight w=1,...,n/2
         table.append(p_2m)
     return table
 
-def sample_dn(n, s, weights_prob):
+def sample_dn(n, s, indices, weights_prob):
     ''''
     Sample a lattice vector from Dn 
 
     :param n: lattice dimension
     :param s: sampling width
+    :param indices: a list of vector indices
     :param weights_prob: a list of the probabilities of sampling in each coset, computed offline by coset_prob_dn
     
     :returns: a lattice vector
     '''
     m = random.choices([i for i in range(1,n/2+1)], weights_prob)
-    subset = random.sample([i for i in range(8)], k=2*m[0])
+    subset = random.sample(indices, k=2*m[0])
     x = np.empty(n)
     for j in range(len(subset)):
         x[subset[j]] = 2 * DGaussZ(sigma=s/(2*sqrt(2*pi)),c=1/2)()
@@ -97,9 +98,14 @@ def espitau_dn(n, s):
 
 '''
 Compute the time it takes to sample 100000 times with both samplers and compare. 
-Sampling width s is computed with epsilon = 2**(-36)
+Sampling width s is computed with epsilon = 2**(-36) and we take the example of n = 8
 '''
 
+# offline
+indices = [i for i in range(8)]
+weights = coset_prob_dn(8, 2.97)
+
+# online
 start_time1 = time.perf_counter ()
 for i in range(100000):
     sample_dn(8, 2.97, coset_prob_dn(8, 2.97))
