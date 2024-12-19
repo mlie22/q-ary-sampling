@@ -108,7 +108,7 @@ weights = coset_prob_dn(8, 2.97)
 # online stage
 start_time1 = time.perf_counter ()
 for i in range(100000):
-    sample_dn(8, 2.97, coset_prob_dn(8, 2.97))
+    sample_dn(8, 2.97, indices, weights)
 end_time1 = time.perf_counter ()
 print(end_time1 - start_time1, "seconds")
 
