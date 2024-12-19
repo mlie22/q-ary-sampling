@@ -101,11 +101,11 @@ Compute the time it takes to sample 100000 times with both samplers and compare.
 Sampling width s is computed with epsilon = 2**(-36) and we take the example of n = 8
 '''
 
-# offline
+# offline stage
 indices = [i for i in range(8)]
 weights = coset_prob_dn(8, 2.97)
 
-# online
+# online stage
 start_time1 = time.perf_counter ()
 for i in range(100000):
     sample_dn(8, 2.97, coset_prob_dn(8, 2.97))
