@@ -80,7 +80,7 @@ def espitau_E8(s, s_prime):
 
 start_time1 = time.perf_counter ()
 for i in range(100000):
-    sample_E8(2.2, coset_prob_E8(2,2))
+    sample_E8(2.2, coset_prob_E8(2.2))
 end_time1 = time.perf_counter ()
 print(end_time1 - start_time1, "seconds")
 
@@ -95,15 +95,3 @@ print(end_time2 - start_time2, "seconds")
 time2 = end_time2 - start_time2
 
 print("Our sampler is", time2/time1, "times as fast as the sampler by Espitau et. al.")
-
-'''
-This is due to the fact that the probability of rejection is sometimes (much) lower than 1/11, 
-so we may sometimes require more repetitions to accept. See the below example:
-'''
-
-b = random.sample([0,1], k=1)[0]
-bh = np.array([b*1/2 for i in range(8)])
-x = espitau_dn_shift(8, 2.97, -bh)
-samp = bh+x
-prob = rho_vec(samp, 2.2)/rho_vec(samp, 2.97)
-print(prob)
