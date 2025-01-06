@@ -11,7 +11,7 @@ def nome(s):
     return exp(-1*pi/s**2)
 
 def scaled_psi_4(s):
-    q=nome(s)
+    q=nome(s)**4
     return (1/2)*jtheta(2, 0, q)
 
 def theta_BW16(s):
@@ -142,8 +142,8 @@ def sample_BW16(s, weights_prob):
         c = random.sample(weight_8, k=1)[0]
 
         # throw a biased coin with prob even, sample over even-even part, otherwise odd-odd part
-        num_even = (2**8)*(scaled_psi_4(s)**8)*(1/2)*(jtheta(3, 0, nome(s)**4)**8+jtheta(2, 0, nome(s)**4)**8)
-        denom_even = num_even + (2**8)*(scaled_psi_4(s)**8)*(jtheta(2, 0, nome(s)**4)*weight_enum_e(8,s)+jtheta(3, 0, nome(s)**4)*weight_enum_o(8,s))
+        num_even = (2**7)*(scaled_psi_4(s)**8)*theta_dn(8, s)
+        denom_even = num_even + (2**7)*(scaled_psi_4(s)**8)*(jtheta(2, 0, nome(s)**4)*weight_enum_e(8,s)+jtheta(3, 0, nome(s)**4)*weight_enum_o(8,s))
         p_even = num_even/denom_even
 
         decomp = random.choices(['even-even', 'odd-odd'], weights=[p_even,1-p_even])
