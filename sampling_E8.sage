@@ -75,7 +75,7 @@ def espitau_E8(s, s_prime):
     if resp == 'accept':
         return samp
     else:
-        samp = espitau_E8(s_prime, s)
+        samp = espitau_E8(s, s_prime)
         return samp
 
 start_time1 = time.perf_counter ()
