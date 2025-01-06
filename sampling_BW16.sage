@@ -247,7 +247,7 @@ def espitau_BW16(s):
 
 start_time2 = time.perf_counter ()
 for i in range(100000):
-    espitau_BW16(2.9)
+    espitau_BW16(2.85)
 end_time2 = time.perf_counter ()
 time2 = end_time2 - start_time2
 
