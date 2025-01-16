@@ -7,14 +7,43 @@ import numpy as np
 import random 
 import time
 
+'''
+Note:
+The Gaussian function with sampling width s is given by rho(x) = exp(-1*pi*||x||**2/s**2). The discrete Gaussian 
+ZZ sampler from Sage samples with respect to the Gaussian function exp(-x**2/(2*s**2)), so we rescale the sampling width 
+in the input to DGaussZ by 1/sqrt(2*pi). The following code is used to compare samplers for Dn with Espitau et. al. 
+'''
+
 def nome(s):
+'''
+Compute the nome q = exp(-1*pi/s**2)
+
+:param s: sampling width
+
+:returns: a real value
+'''
     return exp(-1*pi/s**2)
 
 def scaled_psi_4(s):
+'''
+Compute additional base theta function corresponding 
+to the case ZZ+1/4
+
+:param s: sampling width
+
+:returns: a real value
+'''
     q=nome(s)**4
     return (1/2)*jtheta(2, 0, q)
 
 def theta_BW16(s):
+'''
+Compute the theta series of BW16
+
+:param s: sampling width
+
+:returns: a real value
+'''
     q = nome(s)
     theta3 = jtheta(3,0,q**4)
     theta2 = jtheta(2,0,q**4)
@@ -23,6 +52,14 @@ def theta_BW16(s):
     return theta_series
 
 def coset_prob_BW16(s):
+'''
+Compute the probability that a vector lies in a 
+coset of BW16 represented by a codeword of weight w=0,8,16
+
+:param s: sampling width
+
+:returns: a list of real values
+'''
     q = nome(s)
     theta3 = jtheta(3,0,q**4)
     theta2 = jtheta(2,0,q**4)
@@ -36,6 +73,14 @@ def coset_prob_BW16(s):
     return table
 
 def theta_dn(n,s):
+'''
+Compute the theta series of Dn
+
+:param n: lattice dimension
+:param s: sampling width
+
+:returns: a real value
+'''
     q = nome(s)
     theta3 = jtheta(3,0,q**4)
     theta2 = jtheta(2,0,q**4)
@@ -45,6 +90,15 @@ def theta_dn(n,s):
     return theta_series
 
 def coset_prob_dn(n, s):
+'''
+Compute the probability that a vector lies in a 
+coset of Dn represented by a codeword of weight w=1,...,n/2
+
+:param n: lattice dimension
+:param s: sampling width
+
+:returns: a list of real values
+'''
     table=[]
     q = nome(s)
     theta3 = jtheta(3,0,q**4)
@@ -55,6 +109,14 @@ def coset_prob_dn(n, s):
     return table
 
 def weight_enum_e(n, s):
+'''
+Compute even weight enumerator
+
+:param n: lattice dimension
+:param s: sampling width
+
+:returns: a real value
+'''
     sum = 0
     theta3 = jtheta(3,0,nome(s)**4)
     theta2 = jtheta(2,0,nome(s)**4)
@@ -63,6 +125,14 @@ def weight_enum_e(n, s):
     return sum
 
 def weight_enum_o(n, s):
+'''
+Compute odd weight enumerator
+
+:param n: lattice dimension
+:param s: sampling width
+
+:returns: a real value
+'''
     sum = 0
     theta3 = jtheta(3,0,nome(s)**4)
     theta2 = jtheta(2,0,nome(s)**4)
@@ -71,6 +141,14 @@ def weight_enum_o(n, s):
     return sum
 
 def sample_dn(n, s):
+    ''''
+    Sample a lattice vector from Dn 
+
+    :param n: lattice dimension
+    :param s: sampling width
+    
+    :returns: a lattice vector
+    '''
     indices = [i for i in range(n)]
     m = random.choices(indices[1:n/2+1], weights=coset_prob_dn(n,s))
     subset = random.sample(indices, k=2*m[0])
@@ -83,14 +161,30 @@ def sample_dn(n, s):
     return x
 
 def sample_dn_special_shift(n, s, t):
+    ''''
+    Sample a lattice vector from Dn with a shift of the form (a,...,a) with a=1/2
+
+    :param n: lattice dimension
+    :param s: sampling width
+    
+    :returns: a lattice vector
+    '''
     c = list(random.sample(list(codes.ParityCheckCode(GF(2), n-1)), k=1)[0])
     c_real = [Integer(i) for i in c]
     x = [None] * n
     for i in range(n):
-        x[i] = 2 * DGaussZ(sigma=s/(2*sqrt(2*pi)),c=(c_real[i]+t[i])/2)() # scaling issue
+        x[i] = 2 * DGaussZ(sigma=s/(2*sqrt(2*pi)),c=(c_real[i]+t[i])/2)()
     return x
 
 def sample_dn_bar(n, s):
+    ''''
+    Sample a lattice vector from Dn + (1,0,...,0) 
+
+    :param n: lattice dimension
+    :param s: sampling width
+    
+    :returns: a lattice vector
+    '''
     indices = [i for i in range(n)]
     m = random.choices(indices[1:n/2+1], weights=coset_prob_dn(n,s))[0] # weight_ls is same as in normal Dn alg
     q = nome(s)
@@ -119,9 +213,8 @@ def sample_dn_bar(n, s):
             x[not_subset[j]] = 2 * DGaussZ(sigma=s/(2*sqrt(2*pi)))()
     return x
 
-'''
-Precompute table of codewords of weight 8 in Reed-Muller code
-'''
+
+# Precompute table of codewords of weight 8 in Reed-Muller code
 
 C1 = codes.BinaryReedMullerCode(1,4)
 
@@ -131,6 +224,14 @@ for word in C1:
         weight_8.append(list(word))
 
 def sample_BW16(s, weights_prob):
+    ''''
+    Sample a lattice vector from BW16
+
+    :param s: sampling width
+    :param weights_prob: a list of the probabilities of sampling in each coset, computed offline by coset_prob_BW16
+    
+    :returns: a lattice vector
+    '''
     w = random.choices([0,8,16], weights=weights_prob)[0]
     if w == 0: 
         samp = 2*np.array(sample_dn(16, s/4))
@@ -169,21 +270,30 @@ def sample_BW16(s, weights_prob):
 
     return samp
 
-coset_prob = coset_prob_BW16(2.3)
-
-start_time1 = time.perf_counter ()
-for i in range(100000):
-    sample_BW16(2.3, coset_prob)
-end_time1 = time.perf_counter ()
-time1 = end_time1 - start_time1
-
 def rho_vec(v, s):
+    ''''
+    Compute probability of a vector 
+
+    :param v: vector
+    :param s: sampling width
+    
+    :returns: a real value between 0 and 1
+    '''
     v_t = np.transpose(v)
     Sigma = (1/s**2)*np.identity(len(v))
     prod = np.dot(Sigma,v)
     return exp(-1*pi*np.dot(v_t,prod))
 
 def espitau_dn_shift(n, s, t):
+    ''''
+    Sample a lattice vector from Dn with shifted center
+
+    :param n: lattice dimension
+    :param s: sampling width
+    :param t: center
+    
+    :returns: a lattice vector
+    '''
     x = np.empty(n)
     x[0] += 1
     while (sum(x) % 2) != 0:
@@ -191,8 +301,14 @@ def espitau_dn_shift(n, s, t):
     return x
 
 def espitau_E8_shift(s,s_prime,shift): 
-    '''
-    s is the smoothing parameter of D8, s_prime is the smoothing parameter of E8
+    ''''
+    Sample a lattice vector from E8 with a shifted center
+
+    :param s: smoothing parameter of D8
+    :param s_prime: smoothing parameter of E8
+    :param shift: shifted center
+    
+    :returns: a lattice vector
     '''
     b = random.sample([0,1], k=1)[0]
     bh = np.array([b*1/2 for i in range(8)])
@@ -205,6 +321,8 @@ def espitau_E8_shift(s,s_prime,shift):
     else:
         samp = espitau_E8_shift(s,s_prime,shift)
         return samp
+
+# compute rotated basis of RBW8 used in doubling construction of BW16
 
 R = np.array([[1,1,0,0,0,0,0,0],
               [1,-1,0,0,0,0,0,0],
@@ -234,9 +352,14 @@ for a1, a3, a4, a5, a6, a7 in product(range(2), range(2), range(2), range(4), ra
     rep = a1*B[1,:]+a3*B[3,:]+a4*B[4,:]+a5*B[5,:]+a6*B[6,:]+a7*B[7,:]
     A.append(rep)
 
-len(A)
-
 def espitau_BW16(s):
+    ''''
+    Sample a lattice vector from BW16 
+
+    :param s: smoothing parameter of BW8
+    
+    :returns: a lattice vector
+    '''
     alpha = np.array(random.sample(A, k=1)[0])
     m = np.append(alpha, alpha)
     u1 = np.dot(espitau_E8_shift(2.97, s, -m[0:8]), R) # sampling BW8 and then rotate to sample RBW8
@@ -244,6 +367,21 @@ def espitau_BW16(s):
     u = np.append(u1, u2)
     samp = [u[i] + m[i] for i in range(16)]
     return samp
+
+'''
+Compute the time it takes to sample 100000 times with both samplers and compare. 
+Sampling width s is computed with epsilon = 2**(-36) and we take the example of n = 8
+'''
+
+# offline stage
+coset_prob = coset_prob_BW16(2.3)
+
+# online stage
+start_time1 = time.perf_counter ()
+for i in range(100000):
+    sample_BW16(2.3, coset_prob)
+end_time1 = time.perf_counter ()
+time1 = end_time1 - start_time1
 
 start_time2 = time.perf_counter ()
 for i in range(100000):
